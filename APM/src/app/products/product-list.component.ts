@@ -1,12 +1,14 @@
-import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { EMPTY, Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { Product } from './product';
 import { ProductService } from './product.service';
 
 @Component({
   templateUrl: './product-list.component.html',
-  styleUrls: ['./product-list.component.css']
+  styleUrls: ['./product-list.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProductListComponent implements OnInit{
   pageTitle = 'Product List';
@@ -19,6 +21,12 @@ export class ProductListComponent implements OnInit{
 
   ngOnInit(): void {
     this.products$ = this.productService.getProducts()      // assign observable variable to the call for the current products
+    .pipe(
+      catchError(err => {
+        this.errorMessage = err;
+        return EMPTY;
+      })
+    );
 
   }
 
