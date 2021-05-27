@@ -16,9 +16,9 @@ export class ProductListComponent{
   categories;
 
   products$: Observable<Product[]> = this.productService.products$.pipe(
-    catchError(err => {
+    catchError(err => {           //catch and replace
       this.errorMessage = err;
-      return EMPTY;
+      return EMPTY;               // returns observable that emits empty array
     })
   );;
 

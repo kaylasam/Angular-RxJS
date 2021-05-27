@@ -16,9 +16,9 @@ export class ProductListAltComponent {
   selectedProductId: number;
 
   products$ = this.productService.products$.pipe (
-    catchError( err => {
-      this.errorMessage = err;
-      return EMPTY; }
+    catchError( err => {          // catch and replace error handling
+      this.errorMessage = err;    
+      return EMPTY; }             // if error is caught, products$ will be assigned EMPTY
     )
   );
 
