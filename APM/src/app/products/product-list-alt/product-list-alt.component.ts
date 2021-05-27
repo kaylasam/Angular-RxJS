@@ -19,7 +19,7 @@ export class ProductListAltComponent {
     catchError( err => {
       this.errorMessage = err;
       return EMPTY; }
-  )
+    )
   );
 
   constructor(private productService: ProductService) { }
