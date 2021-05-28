@@ -15,7 +15,7 @@ export class ProductListComponent{
   errorMessage = '';
   categories;
 
-  products$: Observable<Product[]> = this.productService.products$.pipe(
+  products$ = this.productService.productsWithCategory$.pipe(     // instead of product$ observable, this observable is identical except it provides the category property
     catchError(err => {           //catch and replace
       this.errorMessage = err;
       return EMPTY;               // returns observable that emits empty array
