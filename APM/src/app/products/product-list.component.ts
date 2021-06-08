@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, startWith } from 'rxjs/operators';
 import { ProductCategoryService } from '../product-categories/product-category.service';
 
 import { Product } from './product';
@@ -30,6 +30,9 @@ export class ProductListComponent{
   products$ = combineLatest([       
     this.productService.productsWithCategory$,        // combining action stream w data stream
     this.categorySelectedAction$
+      .pipe(
+        startWith(0)      // displays all products when page firsts loads (0 is the value for the display all option)
+      )
   ])
     .pipe(     // instead of product$ observable, this observable is identical except it provides the category property
       map (([products, selectedCategoryId]) =>        // first stream emits array of products, second stream emits the selected category id when user selects from the drop down
