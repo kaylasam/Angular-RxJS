@@ -31,7 +31,7 @@ export class ProductListComponent{
     this.productService.productsWithCategory$,        // combining action stream w data stream
     this.categorySelectedAction$
       .pipe(
-        startWith(0)      // displays all products when page firsts loads (0 is the value for the display all option)
+        startWith(0)      // displays all products when page firsts loads (0 is the value for the display all option); you can also just use behavior subject to set a default value like this
       )
   ])
     .pipe(     // instead of product$ observable, this observable is identical except it provides the category property
