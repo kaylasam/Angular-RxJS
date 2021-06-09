@@ -36,6 +36,15 @@ export class ProductService {
     )
   );
 
+  //selecting one product from the array of products for product detail display
+  selectedProduct$ = this.productsWithCategory$     // use productsWithCategory$ bc we want to display the category string
+    .pipe(
+      map(products =>
+        products.find(product => product.id === 5)      // finds product based on category id that was selected
+        ),
+        tap(product => console.log('selectedProduct', product))
+    );
+
   constructor(private http: HttpClient,
               private productCategoryService: ProductCategoryService,
               private supplierService: SupplierService) { }
