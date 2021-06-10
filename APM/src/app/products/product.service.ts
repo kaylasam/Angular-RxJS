@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { combineLatest, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 
 import { Product } from './product';
@@ -36,11 +36,18 @@ export class ProductService {
     )
   );
 
-  //selecting one product from the array of products for product detail display
-  selectedProduct$ = this.productsWithCategory$     // use productsWithCategory$ bc we want to display the category string
+  // first step for reacting to actions: create action stream
+  private productSelectedSubject = new BehaviorSubject<number>(0);      // behavior subject is used to ensure action stream emits at least once
+  productSelectedAction$ = this.productSelectedSubject.asObservable(); // expose the subjects observable
+
+  // second step for reacting to actions: combine action stream w/ data stream
+  selectedProduct$ = combineLatest([
+    this.productsWithCategory$,     // use productsWithCategory$ bc we want to display the category string
+    this.productSelectedAction$     // pipeline will react when a product is selected
+  ])
     .pipe(
-      map(products =>
-        products.find(product => product.id === 5)      // finds product based on category id that was selected
+      map(([products, selectedProductId]) =>      // array destructuring: first observable emits array of products, second emits the selected product id
+        products.find(product => product.id === selectedProductId)      // finds product that matches the selected product id
         ),
         tap(product => console.log('selectedProduct', product))
     );
@@ -48,6 +55,10 @@ export class ProductService {
   constructor(private http: HttpClient,
               private productCategoryService: ProductCategoryService,
               private supplierService: SupplierService) { }
+
+  selectedProductChanged(selectedProductId: number): void {       // takes in selectedProductId and uses .next to pass to the productSelectedAction action stream
+    this.productSelectedSubject.next(selectedProductId)
+  }
 
   private fakeProduct(): Product {
     return {
