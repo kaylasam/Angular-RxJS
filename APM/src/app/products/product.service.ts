@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import { BehaviorSubject, combineLatest, merge, Observable, Subject, throwError } from 'rxjs';
-import { catchError, map, scan, tap } from 'rxjs/operators';
+import { catchError, map, scan, shareReplay, tap } from 'rxjs/operators';
 
 import { Product } from './product';
 import { Supplier } from '../suppliers/supplier';
@@ -33,7 +33,8 @@ export class ProductService {
       categoryName: categories.find(c => product.categoryId === c.id).name,
       searchKey: [product.productName]
     }) as Product)
-    )
+    ),
+    shareReplay(1)
   );
 
   // first step for reacting to actions: create action stream (for product list filtering)
@@ -49,7 +50,8 @@ export class ProductService {
       map(([products, selectedProductId]) =>      // array destructuring: first observable emits array of products, second emits the selected product id
         products.find(product => product.id === selectedProductId)      // finds product that matches the selected product id
         ),
-        tap(product => console.log('selectedProduct', product))
+        tap(product => console.log('selectedProduct', product)),
+        shareReplay(1)
     );
 
     private productInsertedSubject = new Subject<Product>();      // adding a new product to the stream
@@ -67,7 +69,8 @@ export class ProductService {
   constructor(private http: HttpClient,
               private productCategoryService: ProductCategoryService,
               private supplierService: SupplierService) { }
-
+  
+  // third step for reacting to actions: emit a value to the action stream when an action occurs
   selectedProductChanged(selectedProductId: number): void {       // takes in selectedProductId and uses .next to pass to the productSelectedAction action stream
     this.productSelectedSubject.next(selectedProductId)
   }
