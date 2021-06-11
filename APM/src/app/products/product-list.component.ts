@@ -27,8 +27,8 @@ export class ProductListComponent{
         })
     );
 
-  products$ = combineLatest([       
-    this.productService.productsWithCategory$,        // combining action stream w data stream
+   products$ = combineLatest([
+    this.productService.productsWithAdd$,        // combining action stream w data stream
     this.categorySelectedAction$
       .pipe(
         startWith(0)      // displays all products when page firsts loads (0 is the value for the display all option); you can also just use behavior subject to set a default value like this
@@ -48,7 +48,7 @@ export class ProductListComponent{
   constructor(private productService: ProductService, private productCategoryService: ProductCategoryService) { }
 
   onAdd(): void {
-    console.log('Not yet implemented');
+    this.productService.addProduct();       // when button to add product in the UI is pressed, addProduct method is called
   }
 
   onSelected(categoryId: string): void {        // called each time the users selects from the drop down

@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { BehaviorSubject, combineLatest, Observable, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, merge, Observable, Subject, throwError } from 'rxjs';
+import { catchError, map, scan, tap } from 'rxjs/operators';
 
 import { Product } from './product';
 import { Supplier } from '../suppliers/supplier';
@@ -36,7 +36,7 @@ export class ProductService {
     )
   );
 
-  // first step for reacting to actions: create action stream
+  // first step for reacting to actions: create action stream (for product list filtering)
   private productSelectedSubject = new BehaviorSubject<number>(0);      // behavior subject is used to ensure action stream emits at least once
   productSelectedAction$ = this.productSelectedSubject.asObservable(); // expose the subjects observable
 
@@ -52,12 +52,29 @@ export class ProductService {
         tap(product => console.log('selectedProduct', product))
     );
 
+    private productInsertedSubject = new Subject<Product>();      // adding a new product to the stream
+    productInsertedAction$ = this.productInsertedSubject.asObservable();      // expose the observable
+    
+    // combine action stream to add product w data stream of current products
+    productsWithAdd$ = merge(
+      this.productsWithCategory$,
+      this.productInsertedAction$
+    ).pipe(
+      scan((acc: Product[], value: Product) => [...acc, value])     // takes in accumulator of type Product[] and value of type Product and creates a new 
+                                                                    // array taking the exact copy of Product[] in acc and adding the Product from value 
+    );
+
   constructor(private http: HttpClient,
               private productCategoryService: ProductCategoryService,
               private supplierService: SupplierService) { }
 
   selectedProductChanged(selectedProductId: number): void {       // takes in selectedProductId and uses .next to pass to the productSelectedAction action stream
     this.productSelectedSubject.next(selectedProductId)
+  }
+
+  addProduct(newProduct?: Product){
+    newProduct = newProduct || this.fakeProduct();        // assigns newProduct value of newProduct or fakeProduct if it is NULL
+    this.productInsertedSubject.next(newProduct);         // call .next on the action stream to emit that new product
   }
 
   private fakeProduct(): Product {
