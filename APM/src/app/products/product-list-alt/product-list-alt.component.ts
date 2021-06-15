@@ -23,7 +23,7 @@ export class ProductListAltComponent {
     )
   );
 
-  selectedProduct$ = this.productService.selectedProduct$;      // stream that emits the selected product whenever it changes
+  selectedProduct$ = this.productService.selectedProduct$;      // stream that emits the selected product whenever it changes and makes button blue
 
   constructor(private productService: ProductService) { }
 
