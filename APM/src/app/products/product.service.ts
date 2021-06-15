@@ -54,17 +54,26 @@ export class ProductService {
         shareReplay(1)
     );
 
-    private productInsertedSubject = new Subject<Product>();      // adding a new product to the stream
-    productInsertedAction$ = this.productInsertedSubject.asObservable();      // expose the observable
-    
-    // combine action stream to add product w data stream of current products
-    productsWithAdd$ = merge(
-      this.productsWithCategory$,
-      this.productInsertedAction$
-    ).pipe(
-      scan((acc: Product[], value: Product) => [...acc, value])     // takes in accumulator of type Product[] and value of type Product and creates a new 
-                                                                    // array taking the exact copy of Product[] in acc and adding the Product from value 
-    );
+  private productInsertedSubject = new Subject<Product>();      // adding a new product to the stream
+  productInsertedAction$ = this.productInsertedSubject.asObservable();      // expose the observable
+  
+  // combine action stream to add product w data stream of current products
+  productsWithAdd$ = merge(
+    this.productsWithCategory$,
+    this.productInsertedAction$
+  ).pipe(
+    scan((acc: Product[], value: Product) => [...acc, value])     // takes in accumulator of type Product[] and value of type Product and creates a new 
+                                                                  // array taking the exact copy of Product[] in acc and adding the Product from value 
+  );
+
+  selectedProductSuppliers$ = combineLatest([
+    this.selectedProduct$,                      // combines the selectedProduct action observable w the suppliers observable
+    this.supplierService.suppliers$
+  ]).pipe(
+    map(([selectedProduct, suppliers]) =>       // array destructuring to assign variables to the emissions from the input stream
+    suppliers.filter(supplier => selectedProduct.supplierIds.includes(supplier.id))         // filters the suppliers array to include only those suppliers that are in the array of supplierIds
+    )
+  );
 
   constructor(private http: HttpClient,
               private productCategoryService: ProductCategoryService,
