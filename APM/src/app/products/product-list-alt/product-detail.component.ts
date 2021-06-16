@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { EMPTY, Subject } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { combineLatest, EMPTY, Subject } from 'rxjs';
+import { catchError, filter, map } from 'rxjs/operators';
 import { Product } from '../product';
 
 import { ProductService } from '../product.service';
@@ -35,6 +35,17 @@ export class ProductDetailComponent {
           return EMPTY;
         })
       );
+
+  vm$ = combineLatest([         // emits an array and the latest emitted item from each input stream is an element in that array
+    this.product$,
+    this.productSuppliers$,
+    this.pageTitle$
+  ])
+  .pipe(
+    filter(([product]) => Boolean(product)),
+    map(([product, productSuppliers, pageTitle]) =>       // array destructuring for each element of each of the input streams
+    ({product, productSuppliers, pageTitle}))         // define an object literal w a property for each array element
+  );
 
   constructor(private productService: ProductService) { }
 
