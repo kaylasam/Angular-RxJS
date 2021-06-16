@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { BehaviorSubject, combineLatest, merge, Observable, Subject, throwError } from 'rxjs';
-import { catchError, map, scan, shareReplay, tap } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, from, merge, Observable, Subject, throwError } from 'rxjs';
+import { catchError, filter, map, mergeMap, scan, shareReplay, switchMap, tap, toArray } from 'rxjs/operators';
 
 import { Product } from './product';
 import { Supplier } from '../suppliers/supplier';
@@ -66,14 +66,29 @@ export class ProductService {
                                                                   // array taking the exact copy of Product[] in acc and adding the Product from value 
   );
 
-  selectedProductSuppliers$ = combineLatest([
-    this.selectedProduct$,                      // combines the selectedProduct action observable w the suppliers observable
-    this.supplierService.suppliers$
-  ]).pipe(
-    map(([selectedProduct, suppliers]) =>       // array destructuring to assign variables to the emissions from the input stream
-    suppliers.filter(supplier => selectedProduct.supplierIds.includes(supplier.id))         // filters the suppliers array to include only those suppliers that are in the array of supplierIds
-    )
-  );
+  // selectedProductSuppliers$ = combineLatest([
+  //   this.selectedProduct$,                      // combines the selectedProduct action observable w the suppliers observable
+  //   this.supplierService.suppliers$
+  // ]).pipe(
+  //   map(([selectedProduct, suppliers]) =>       // array destructuring to assign variables to the emissions from the input stream
+  //   suppliers.filter(supplier => selectedProduct.supplierIds.includes(supplier.id))         // filters the suppliers array to include only those suppliers that are in the array of supplierIds
+  //   )
+  // );
+
+  // just in time approach
+  selectedProductSuppliers$ = this.selectedProduct$
+    .pipe(
+      filter(selectedProduct => Boolean(selectedProduct)),        // skips the process of deciding if a selected product is null or not
+      // using switchMap to get the data for the most recently selected product
+      switchMap(selectedProduct =>               // creating an inner observable from the array of supplier ids for the product
+        from(selectedProduct.supplierIds)
+        .pipe(
+          // we dont use switchMap here bc we want to retrieve ALL of the suppliers
+          mergeMap(supplierId => this.http.get<Supplier>(`${this.suppliersUrl}/${supplierId}`)),        // issues an http get request for each supplier id and merges w the stream of individual suppliers
+          toArray(),       // presents emissions as a single array
+          tap(suppliers => console.log('product suppliers', JSON.stringify(suppliers)))
+        ))
+    );
 
   constructor(private http: HttpClient,
               private productCategoryService: ProductCategoryService,
