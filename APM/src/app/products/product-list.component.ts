@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
-import { catchError, map, startWith } from 'rxjs/operators';
+import { catchError, filter, map, startWith } from 'rxjs/operators';
 import { ProductCategoryService } from '../product-categories/product-category.service';
 
 import { Product } from './product';
@@ -44,6 +44,16 @@ export class ProductListComponent{
       return EMPTY;               // returns observable that emits empty array
     })
   );
+
+  // vm$ = combineLatest([         // emits an array and the latest emitted item from each input stream is an element in that array
+  //   this.products$,
+  //   this.categories$
+  // ])
+  // .pipe(
+  //   filter(([products]) => Boolean(products)),
+  //   map(([products, categories]) =>       // array destructuring for each element of each of the input streams
+  //   ({products, categories}))         // define an object literal w a property for each array element
+  // );
 
   constructor(private productService: ProductService, private productCategoryService: ProductCategoryService) { }
 
